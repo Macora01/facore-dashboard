@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Financiero</title>
+<title>Dashboard Financiero — Facore</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   :root {
@@ -23,398 +23,183 @@
     --border:           #dec290;
     --border-light:     #ecd9b0;
   }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--background-color); color:var(--text-color); font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; min-height:100vh; padding:24px; }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* ── LOGIN ── */
+  #loginOverlay { position:fixed; inset:0; background:var(--background-color); display:flex; align-items:center; justify-content:center; z-index:9999; padding:24px; }
+  #loginOverlay.hidden { display:none; }
+  .login-card { background:var(--white); border:1px solid var(--border-light); border-radius:20px; padding:40px 36px; width:100%; max-width:380px; box-shadow:0 8px 40px rgba(95,46,10,0.15); text-align:center; }
+  .login-logo { width:52px; height:52px; background:var(--primary-color); border-radius:14px; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:1.5rem; color:var(--accent-color); }
+  .login-card h2 { font-size:1.2rem; font-weight:700; color:var(--primary-color); margin-bottom:4px; }
+  .login-card p { font-size:0.8rem; color:var(--text-light); margin-bottom:28px; }
+  .login-field { margin-bottom:14px; text-align:left; }
+  .login-field label { display:block; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-light); font-weight:600; margin-bottom:6px; }
+  .login-field input { width:100%; padding:11px 14px; border:1px solid var(--border); border-radius:10px; background:var(--surface2); color:var(--text-color); font-size:0.9rem; outline:none; transition:border-color 0.15s; font-family:inherit; }
+  .login-field input:focus { border-color:var(--secondary-color); background:var(--white); }
+  .login-btn { width:100%; padding:12px; background:var(--primary-color); color:var(--accent-color); border:none; border-radius:10px; font-size:0.9rem; font-weight:700; cursor:pointer; margin-top:8px; transition:background 0.15s,transform 0.1s; font-family:inherit; }
+  .login-btn:hover { background:var(--secondary-color); transform:translateY(-1px); }
+  .login-btn:active { transform:translateY(0); }
+  .login-error { font-size:0.75rem; color:var(--danger); background:rgba(123,45,0,0.08); border-radius:8px; padding:8px 12px; margin-top:12px; display:none; }
+  .login-error.show { display:block; }
+  .login-footer { margin-top:20px; display:flex; justify-content:space-between; align-items:center; }
+  .login-version { font-size:0.68rem; color:var(--text-light); opacity:0.7; }
+  .login-admin-link { font-size:0.7rem; color:var(--secondary-color); cursor:pointer; text-decoration:underline; opacity:0.8; }
+  .login-admin-link:hover { opacity:1; }
 
-  body {
-    background: var(--background-color);
-    color: var(--text-color);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    min-height: 100vh;
-    padding: 24px;
-  }
+  /* ── MODAL CRUD ── */
+  .modal-overlay { position:fixed; inset:0; background:rgba(95,46,10,0.35); display:flex; align-items:center; justify-content:center; z-index:10000; padding:24px; }
+  .modal-overlay.hidden { display:none; }
+  .modal { background:var(--white); border-radius:18px; padding:28px; width:100%; max-width:480px; box-shadow:0 12px 50px rgba(95,46,10,0.2); }
+  .modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .modal-header h3 { font-size:1rem; font-weight:700; color:var(--primary-color); }
+  .modal-close { width:30px; height:30px; border:none; background:var(--surface2); border-radius:8px; cursor:pointer; font-size:1rem; color:var(--text-light); display:flex; align-items:center; justify-content:center; transition:background 0.15s; }
+  .modal-close:hover { background:var(--border); }
+  .user-list { list-style:none; margin-bottom:16px; display:flex; flex-direction:column; gap:8px; max-height:220px; overflow-y:auto; }
+  .user-item { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:var(--surface2); border-radius:10px; border:1px solid var(--border-light); }
+  .user-item-name { font-size:0.85rem; font-weight:600; color:var(--primary-color); }
+  .user-item-pass { font-size:0.75rem; color:var(--text-light); margin-top:2px; }
+  .user-actions { display:flex; gap:6px; }
+  .btn-icon { width:28px; height:28px; border:none; border-radius:7px; cursor:pointer; font-size:0.8rem; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
+  .btn-edit { background:rgba(160,82,45,0.12); color:var(--secondary-color); }
+  .btn-edit:hover { background:rgba(160,82,45,0.25); }
+  .btn-del  { background:rgba(123,45,0,0.1);  color:var(--danger); }
+  .btn-del:hover  { background:rgba(123,45,0,0.22); }
+  .modal-sep { border:none; border-top:1px solid var(--border-light); margin:16px 0; }
+  .modal-form { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .modal-form .span2 { grid-column:1/-1; }
+  .modal-input { width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:9px; background:var(--surface2); color:var(--text-color); font-size:0.85rem; font-family:inherit; outline:none; transition:border-color 0.15s; }
+  .modal-input:focus { border-color:var(--secondary-color); background:var(--white); }
+  .modal-input-label { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-light); font-weight:600; margin-bottom:4px; display:block; }
+  .btn-save { background:var(--primary-color); color:var(--accent-color); border:none; border-radius:9px; padding:9px 18px; font-size:0.82rem; font-weight:700; cursor:pointer; transition:background 0.15s; font-family:inherit; }
+  .btn-save:hover { background:var(--secondary-color); }
+  .modal-msg { font-size:0.75rem; margin-top:10px; padding:7px 12px; border-radius:8px; display:none; }
+  .modal-msg.ok  { display:block; background:rgba(107,142,35,0.12); color:var(--success); }
+  .modal-msg.err { display:block; background:rgba(123,45,0,0.08); color:var(--danger); }
 
-  /* ── LOGIN OVERLAY ───────────────────────────────────────── */
-  #loginOverlay {
-    position: fixed;
-    inset: 0;
-    background: var(--background-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    padding: 24px;
-  }
-  #loginOverlay.hidden { display: none; }
-  .login-card {
-    background: var(--white);
-    border: 1px solid var(--border-light);
-    border-radius: 20px;
-    padding: 40px 36px;
-    width: 100%;
-    max-width: 380px;
-    box-shadow: 0 8px 40px rgba(95,46,10,0.15);
-    text-align: center;
-  }
-  .login-logo {
-    width: 52px; height: 52px;
-    background: var(--primary-color);
-    border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 20px;
-    font-size: 1.5rem;
-    color: var(--accent-color);
-  }
-  .login-card h2 {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--primary-color);
-    margin-bottom: 4px;
-  }
-  .login-card p {
-    font-size: 0.8rem;
-    color: var(--text-light);
-    margin-bottom: 28px;
-  }
-  .login-field {
-    position: relative;
-    margin-bottom: 14px;
-    text-align: left;
-  }
-  .login-field label {
-    display: block;
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-light);
-    font-weight: 600;
-    margin-bottom: 6px;
-  }
-  .login-field input {
-    width: 100%;
-    padding: 11px 14px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--surface2);
-    color: var(--text-color);
-    font-size: 0.9rem;
-    outline: none;
-    transition: border-color 0.15s;
-    font-family: inherit;
-  }
-  .login-field input:focus { border-color: var(--secondary-color); background: var(--white); }
-  .login-btn {
-    width: 100%;
-    padding: 12px;
-    background: var(--primary-color);
-    color: var(--accent-color);
-    border: none;
-    border-radius: 10px;
-    font-size: 0.9rem;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: background 0.15s, transform 0.1s;
-    font-family: inherit;
-  }
-  .login-btn:hover { background: var(--secondary-color); transform: translateY(-1px); }
-  .login-btn:active { transform: translateY(0); }
-  .login-error {
-    font-size: 0.75rem;
-    color: var(--danger);
-    background: rgba(123,45,0,0.08);
-    border-radius: 8px;
-    padding: 8px 12px;
-    margin-top: 12px;
-    display: none;
-  }
-  .login-error.show { display: block; }
+  /* ── HEADER ── */
+  header { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:10px; }
+  .header-left { display:flex; align-items:center; gap:12px; }
+  .header-icon { width:36px; height:36px; background:var(--primary-color); border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--accent-color); font-size:1.1rem; }
+  header h1 { font-size:1.35rem; font-weight:700; letter-spacing:-0.02em; color:var(--primary-color); }
+  header h1 span { color:var(--secondary-color); font-weight:400; }
+  .header-right { display:flex; align-items:center; gap:10px; }
+  .header-badge { font-size:0.73rem; color:var(--text-light); background:var(--surface2); padding:5px 12px; border-radius:20px; border:1px solid var(--border); font-weight:500; }
+  .btn-logout { font-size:0.72rem; color:var(--text-light); background:var(--surface2); padding:5px 12px; border-radius:20px; border:1px solid var(--border); cursor:pointer; transition:all 0.15s; font-family:inherit; }
+  .btn-logout:hover { border-color:var(--danger); color:var(--danger); }
 
-  /* ── HEADER ─────────────────────────────────────────────── */
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 28px;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .header-left { display: flex; align-items: center; gap: 12px; }
-  .header-icon {
-    width: 36px; height: 36px;
-    background: var(--primary-color);
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--accent-color);
-    font-size: 1.1rem;
-  }
-  header h1 {
-    font-size: 1.35rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--primary-color);
-  }
-  header h1 span { color: var(--secondary-color); font-weight: 400; }
-  .header-badge {
-    font-size: 0.73rem;
-    color: var(--text-light);
-    background: var(--surface2);
-    padding: 5px 12px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    font-weight: 500;
-  }
+  /* ── FILTERS ── */
+  .filters { display:flex; gap:20px; flex-wrap:wrap; margin-bottom:24px; background:var(--surface); padding:18px 22px; border-radius:16px; border:1px solid var(--border-light); box-shadow:0 2px 12px rgba(95,46,10,0.07); }
+  .filter-group { display:flex; flex-direction:column; gap:8px; flex:1; min-width:160px; }
+  .filter-group label { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-light); font-weight:600; display:flex; align-items:center; gap:5px; }
+  .filter-group label::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent-color); }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { padding:5px 13px; border-radius:20px; border:1px solid var(--border); background:var(--surface2); color:var(--text-light); font-size:0.77rem; cursor:pointer; transition:all 0.18s ease; user-select:none; font-weight:500; }
+  .chip:hover { border-color:var(--secondary-color); color:var(--primary-color); background:#ede0c4; transform:translateY(-1px); }
+  .chip.active { background:var(--primary-color); border-color:var(--primary-color); color:var(--accent-color); font-weight:600; box-shadow:0 2px 8px rgba(95,46,10,0.25); }
+  .chip.c-ventas.active    { background:var(--primary-color); border-color:var(--primary-color); }
+  .chip.c-costo.active     { background:var(--danger);        border-color:var(--danger); }
+  .chip.c-gastos.active    { background:var(--warning);       border-color:var(--warning); }
+  .chip.c-resultado.active { background:var(--success);       border-color:var(--success); color:#fff; }
+  .chip.c-period.active    { background:var(--info);          border-color:var(--info);    color:#fff; }
 
-  /* ── FILTERS ─────────────────────────────────────────────── */
-  .filters {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    margin-bottom: 24px;
-    background: var(--surface);
-    padding: 18px 22px;
-    border-radius: 16px;
-    border: 1px solid var(--border-light);
-    box-shadow: 0 2px 12px rgba(95,46,10,0.07);
-  }
-  .filter-group { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 160px; }
-  .filter-group label {
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.09em;
-    color: var(--text-light);
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .filter-group label::before {
-    content: '';
-    display: inline-block;
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--accent-color);
-  }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip {
-    padding: 5px 13px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text-light);
-    font-size: 0.77rem;
-    cursor: pointer;
-    transition: all 0.18s ease;
-    user-select: none;
-    font-weight: 500;
-  }
-  .chip:hover {
-    border-color: var(--secondary-color);
-    color: var(--primary-color);
-    background: #ede0c4;
-    transform: translateY(-1px);
-  }
-  .chip.active {
-    background: var(--primary-color);
-    border-color: var(--primary-color);
-    color: var(--accent-color);
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(95,46,10,0.25);
-  }
-  .chip.c-ventas.active    { background: var(--primary-color); border-color: var(--primary-color); }
-  .chip.c-costo.active     { background: var(--danger);        border-color: var(--danger); }
-  .chip.c-gastos.active    { background: var(--warning);       border-color: var(--warning); }
-  .chip.c-resultado.active { background: var(--success);       border-color: var(--success); color: #fff; }
-  .chip.c-period.active    { background: var(--info);          border-color: var(--info);    color: #fff; }
+  /* ── KPIs ── */
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; margin-bottom:24px; }
+  .kpi { background:var(--surface); border:1px solid var(--border-light); border-radius:16px; padding:20px 22px; position:relative; overflow:hidden; transition:transform 0.15s ease,box-shadow 0.15s ease; box-shadow:0 2px 10px rgba(95,46,10,0.06); }
+  .kpi:hover { transform:translateY(-3px); box-shadow:0 6px 20px rgba(95,46,10,0.12); }
+  .kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; background:var(--kpi-color,var(--primary-color)); border-radius:16px 16px 0 0; }
+  .kpi::after  { content:''; position:absolute; right:-20px; top:-20px; width:80px; height:80px; border-radius:50%; background:var(--kpi-color,var(--primary-color)); opacity:0.05; }
+  .kpi-label { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-light); margin-bottom:10px; font-weight:600; }
+  .kpi-value { font-size:1.6rem; font-weight:800; letter-spacing:-0.03em; line-height:1; }
+  .kpi-sub   { font-size:0.72rem; color:var(--text-light); margin-top:6px; }
+  .kpi-badge { display:inline-flex; align-items:center; gap:3px; font-size:0.69rem; padding:3px 8px; border-radius:10px; margin-top:8px; font-weight:700; }
+  .badge-up   { background:rgba(107,142,35,0.12); color:var(--success); }
+  .badge-down { background:rgba(123,45,0,0.12);   color:var(--danger);  }
 
-  /* ── KPIs ─────────────────────────────────────────────────── */
-  .kpis {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-    gap: 14px;
-    margin-bottom: 24px;
-  }
-  .kpi {
-    background: var(--surface);
-    border: 1px solid var(--border-light);
-    border-radius: 16px;
-    padding: 20px 22px;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-    box-shadow: 0 2px 10px rgba(95,46,10,0.06);
-  }
-  .kpi:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(95,46,10,0.12);
-  }
-  .kpi::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 4px;
-    background: var(--kpi-color, var(--primary-color));
-    border-radius: 16px 16px 0 0;
-  }
-  .kpi::after {
-    content: '';
-    position: absolute;
-    right: -20px; top: -20px;
-    width: 80px; height: 80px;
-    border-radius: 50%;
-    background: var(--kpi-color, var(--primary-color));
-    opacity: 0.05;
-  }
-  .kpi-label {
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.09em;
-    color: var(--text-light);
-    margin-bottom: 10px;
-    font-weight: 600;
-  }
-  .kpi-value {
-    font-size: 1.6rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    line-height: 1;
-  }
-  .kpi-sub { font-size: 0.72rem; color: var(--text-light); margin-top: 6px; }
-  .kpi-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    font-size: 0.69rem;
-    padding: 3px 8px;
-    border-radius: 10px;
-    margin-top: 8px;
-    font-weight: 700;
-  }
-  .badge-up   { background: rgba(107,142,35,0.12); color: var(--success); }
-  .badge-down { background: rgba(123,45,0,0.12);   color: var(--danger); }
+  /* ── CARDS ── */
+  .charts-grid { display:grid; grid-template-columns:2fr 1fr; gap:14px; margin-bottom:14px; }
+  .chart-card  { background:var(--surface); border:1px solid var(--border-light); border-radius:16px; padding:22px; box-shadow:0 2px 10px rgba(95,46,10,0.06); }
+  .card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:8px; }
+  .card-title  { font-size:0.75rem; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-light); font-weight:700; }
+  .chart-wrap  { position:relative; }
+  .chart-actions { display:flex; gap:4px; flex-wrap:wrap; }
+  .chart-btn { padding:4px 11px; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--text-light); font-size:0.71rem; cursor:pointer; transition:all 0.15s; font-weight:500; }
+  .chart-btn:hover { border-color:var(--secondary-color); color:var(--primary-color); }
+  .chart-btn.active { background:var(--primary-color); border-color:var(--primary-color); color:var(--accent-color); font-weight:600; }
 
-  /* ── CARDS ────────────────────────────────────────────────── */
-  .charts-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 14px;
-    margin-bottom: 14px;
-  }
-  .chart-card {
-    background: var(--surface);
-    border: 1px solid var(--border-light);
-    border-radius: 16px;
-    padding: 22px;
-    box-shadow: 0 2px 10px rgba(95,46,10,0.06);
-  }
-  .card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 18px;
-  }
-  .card-title {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: var(--text-light);
-    font-weight: 700;
-  }
-  .chart-wrap { position: relative; }
+  /* ── BOTTOM / TABLE ── */
+  .bottom-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .table-card { background:var(--surface); border:1px solid var(--border-light); border-radius:16px; padding:22px; margin-bottom:14px; overflow-x:auto; box-shadow:0 2px 10px rgba(95,46,10,0.06); }
+  table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+  th { text-align:left; padding:9px 14px; color:var(--text-light); font-weight:700; font-size:0.69rem; text-transform:uppercase; letter-spacing:0.07em; border-bottom:2px solid var(--border-light); background:var(--surface2); }
+  th:first-child { border-radius:8px 0 0 8px; } th:last-child { border-radius:0 8px 8px 0; }
+  td { padding:10px 14px; border-bottom:1px solid var(--border-light); color:var(--text-color); transition:background 0.1s; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:rgba(209,182,132,0.18); }
+  td.neg  { color:var(--danger);  font-weight:600; }
+  td.pos  { color:var(--success); font-weight:600; }
+  td.bold { font-weight:700; color:var(--primary-color); }
 
-  /* ── CHART TOGGLE ─────────────────────────────────────────── */
-  .chart-actions { display: flex; gap: 4px; }
-  .chart-btn {
-    padding: 4px 11px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text-light);
-    font-size: 0.71rem;
-    cursor: pointer;
-    transition: all 0.15s;
-    font-weight: 500;
-  }
-  .chart-btn:hover { border-color: var(--secondary-color); color: var(--primary-color); }
-  .chart-btn.active {
-    background: var(--primary-color);
-    border-color: var(--primary-color);
-    color: var(--accent-color);
-    font-weight: 600;
-  }
-
-  /* ── BOTTOM ROW ───────────────────────────────────────────── */
-  .bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-
-  /* ── TABLE ────────────────────────────────────────────────── */
-  .table-card {
-    background: var(--surface);
-    border: 1px solid var(--border-light);
-    border-radius: 16px;
-    padding: 22px;
-    margin-bottom: 14px;
-    overflow-x: auto;
-    box-shadow: 0 2px 10px rgba(95,46,10,0.06);
-  }
-  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-  th {
-    text-align: left;
-    padding: 9px 14px;
-    color: var(--text-light);
-    font-weight: 700;
-    font-size: 0.69rem;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    border-bottom: 2px solid var(--border-light);
-    background: var(--surface2);
-  }
-  th:first-child { border-radius: 8px 0 0 8px; }
-  th:last-child  { border-radius: 0 8px 8px 0; }
-  td {
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border-light);
-    color: var(--text-color);
-    transition: background 0.1s;
-  }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: rgba(209,182,132,0.18); }
-  td.neg  { color: var(--danger);  font-weight: 600; }
-  td.pos  { color: var(--success); font-weight: 600; }
-  td.bold { font-weight: 700; color: var(--primary-color); }
-
-  /* ── RESPONSIVE ───────────────────────────────────────────── */
-  @media (max-width: 900px) {
-    body { padding: 16px; }
-    .charts-grid { grid-template-columns: 1fr; }
-    .bottom-row  { grid-template-columns: 1fr; }
-    .kpis { grid-template-columns: repeat(2, 1fr); }
-    header h1 { font-size: 1.1rem; }
-  }
-  @media (max-width: 480px) {
-    .kpis { grid-template-columns: 1fr; }
-    .filters { flex-direction: column; }
-  }
+  /* ── RESPONSIVE ── */
+  @media (max-width:900px) { body{padding:16px;} .charts-grid{grid-template-columns:1fr;} .bottom-row{grid-template-columns:1fr;} .kpis{grid-template-columns:repeat(2,1fr);} header h1{font-size:1.1rem;} }
+  @media (max-width:480px) { .kpis{grid-template-columns:1fr;} .filters{flex-direction:column;} .modal-form{grid-template-columns:1fr;} }
 </style>
 </head>
 <body>
 
-<!-- LOGIN OVERLAY -->
+<!-- LOGIN -->
 <div id="loginOverlay">
   <div class="login-card">
     <div class="login-logo">&#9783;</div>
     <h2>Cuadro de Resultado</h2>
     <p>Facore Ltda. — Acceso restringido</p>
-    <div class="login-field">
-      <label>Usuario</label>
-      <input type="text" id="loginUser" placeholder="usuario" autocomplete="username" />
-    </div>
-    <div class="login-field">
-      <label>Contraseña</label>
-      <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" />
-    </div>
+    <div class="login-field"><label>Usuario</label><input type="text" id="loginUser" placeholder="usuario" autocomplete="username"/></div>
+    <div class="login-field"><label>Contraseña</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"/></div>
     <button class="login-btn" onclick="doLogin()">Ingresar</button>
     <div class="login-error" id="loginError">Usuario o contraseña incorrectos</div>
-    <div style="margin-top:20px;font-size:0.68rem;color:var(--text-light);opacity:0.7" id="loginVersion"></div>
+    <div class="login-footer">
+      <span class="login-version" id="loginVersion"></span>
+      <span class="login-admin-link" onclick="openUserModal()">&#9965; Gestionar usuarios</span>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CRUD USUARIOS -->
+<div class="modal-overlay hidden" id="userModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Gestión de Usuarios</h3>
+      <button class="modal-close" onclick="closeUserModal()">✕</button>
+    </div>
+    <ul class="user-list" id="userList"></ul>
+    <hr class="modal-sep">
+    <p style="font-size:0.72rem;color:var(--text-light);margin-bottom:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em" id="formTitle">Nuevo usuario</p>
+    <div class="modal-form">
+      <div>
+        <label class="modal-input-label">Usuario</label>
+        <input class="modal-input" id="newUser" placeholder="nombre" autocomplete="off"/>
+      </div>
+      <div>
+        <label class="modal-input-label">Contraseña</label>
+        <input class="modal-input" type="password" id="newPass" placeholder="contraseña"/>
+      </div>
+      <div class="span2" style="display:flex;gap:8px;align-items:center">
+        <button class="btn-save" onclick="saveUser()">Guardar</button>
+        <button class="btn-save" style="background:var(--surface2);color:var(--text-light);border:1px solid var(--border)" onclick="cancelEdit()">Cancelar</button>
+        <span id="modalMsg" class="modal-msg"></span>
+      </div>
+    </div>
+    <!-- Admin gate -->
+    <div id="adminGate" style="margin-top:16px">
+      <hr class="modal-sep">
+      <p style="font-size:0.75rem;color:var(--text-light);margin-bottom:8px">Ingresa la contraseña de administrador para continuar</p>
+      <div style="display:flex;gap:8px">
+        <input class="modal-input" type="password" id="adminPass" placeholder="contraseña admin" style="flex:1"/>
+        <button class="btn-save" onclick="verifyAdmin()">Verificar</button>
+      </div>
+      <div class="login-error show" id="adminError" style="display:none;margin-top:8px">Contraseña incorrecta</div>
+    </div>
+    <div id="adminContent" style="display:none"></div>
   </div>
 </div>
 
@@ -423,7 +208,10 @@
     <div class="header-icon">&#9783;</div>
     <h1>Cuadro de Resultado <span>/ Facore Ltda.</span></h1>
   </div>
-  <span class="header-badge">Sep 2022 — Mar 2026</span>
+  <div class="header-right">
+    <span class="header-badge">Sep 2022 — Mar 2026</span>
+    <button class="btn-logout" onclick="doLogout()">Cerrar sesión</button>
+  </div>
 </header>
 
 <!-- FILTERS -->
@@ -446,69 +234,69 @@
   </div>
 </div>
 
-<!-- KPIs -->
 <div class="kpis" id="kpis"></div>
 
-<!-- MAIN CHART + DONUT -->
 <div class="charts-grid">
   <div class="chart-card">
     <div class="card-header">
       <span class="card-title">Evolución mensual</span>
       <div class="chart-actions">
-        <button class="chart-btn active" id="btnBar" onclick="setChartType('bar')">Barras</button>
-        <button class="chart-btn" id="btnLine" onclick="setChartType('line')">Línea</button>
+        <button class="chart-btn active" id="btnBar"  onclick="setChartType('bar')">Barras</button>
+        <button class="chart-btn"        id="btnLine" onclick="setChartType('line')">Línea</button>
+        <button class="chart-btn"        id="btnComp" onclick="setChartView('compare')" title="Agrupa el mismo mes de distintos años">Por mes/año</button>
+        <button class="chart-btn active" id="btnCron" onclick="setChartView('chrono')"  title="Vista cronológica">Cronológico</button>
       </div>
     </div>
     <div class="chart-wrap"><canvas id="mainChart" height="260"></canvas></div>
   </div>
   <div class="chart-card">
-    <div class="card-header">
-      <span class="card-title">Composición promedio</span>
-    </div>
+    <div class="card-header"><span class="card-title">Composición promedio</span></div>
     <div class="chart-wrap"><canvas id="donutChart" height="260"></canvas></div>
   </div>
 </div>
 
-<!-- BOTTOM ROW -->
 <div class="bottom-row">
   <div class="chart-card">
-    <div class="card-header">
-      <span class="card-title">Resultado por año</span>
-    </div>
+    <div class="card-header"><span class="card-title">Resultado por año</span></div>
     <div class="chart-wrap"><canvas id="yearChart" height="200"></canvas></div>
   </div>
   <div class="chart-card">
-    <div class="card-header">
-      <span class="card-title">Margen resultado %</span>
-    </div>
+    <div class="card-header"><span class="card-title">Margen resultado %</span></div>
     <div class="chart-wrap"><canvas id="marginChart" height="200"></canvas></div>
   </div>
 </div>
 
-<!-- TABLE -->
 <div class="table-card">
-  <div class="card-header">
-    <span class="card-title">Detalle mensual</span>
-  </div>
+  <div class="card-header"><span class="card-title">Detalle mensual</span></div>
   <table id="detailTable"></table>
 </div>
 
 <script>
-// ─── VERSION ──────────────────────────────────────────────────────────────────
-const VERSION = '01.01.000';
+// ─── VERSION ─────────────────────────────────────────────────────────────────
+const VERSION = '01.02.000';
 
-// ─── AUTH ─────────────────────────────────────────────────────────────────────
-const USERS = {
-  'facore': 'facore2024',
-  'mario':  'facore2024',
-};
+// ─── USERS (localStorage) ────────────────────────────────────────────────────
+const ADMIN_USER = 'mario';
+const ADMIN_PASS = 'facore2024';
 
+function loadUsers() {
+  const stored = localStorage.getItem('fc_users');
+  if (stored) return JSON.parse(stored);
+  const defaults = { 'facore': 'facore2024', 'mario': 'facore2024' };
+  localStorage.setItem('fc_users', JSON.stringify(defaults));
+  return defaults;
+}
+function saveUsers(u) { localStorage.setItem('fc_users', JSON.stringify(u)); }
+
+// ─── AUTH ────────────────────────────────────────────────────────────────────
 function doLogin() {
   const user = document.getElementById('loginUser').value.trim().toLowerCase();
   const pass = document.getElementById('loginPass').value;
   const err  = document.getElementById('loginError');
-  if (USERS[user] && USERS[user] === pass) {
+  const users = loadUsers();
+  if (users[user] && users[user] === pass) {
     sessionStorage.setItem('fc_auth', '1');
+    sessionStorage.setItem('fc_user', user);
     document.getElementById('loginOverlay').classList.add('hidden');
     err.classList.remove('show');
   } else {
@@ -518,89 +306,175 @@ function doLogin() {
   }
 }
 
-// Permitir Enter en los campos
-document.addEventListener('DOMContentLoaded', () => {
-  ['loginUser','loginPass'].forEach(id => {
-    document.getElementById(id).addEventListener('keydown', e => {
-      if (e.key === 'Enter') doLogin();
-    });
-  });
-  // Si ya está autenticado en esta sesión, saltar login
-  document.getElementById('loginVersion').textContent = 'v' + VERSION;
-  if (sessionStorage.getItem('fc_auth') === '1') {
-    document.getElementById('loginOverlay').classList.add('hidden');
-  }
-});
+function doLogout() {
+  sessionStorage.removeItem('fc_auth');
+  sessionStorage.removeItem('fc_user');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginOverlay').classList.remove('hidden');
+}
 
-// ─── PALETTE ──────────────────────────────────────────────────────────────────
+// ─── MODAL CRUD ──────────────────────────────────────────────────────────────
+let editingUser = null;
+let adminVerified = false;
+
+function openUserModal() {
+  adminVerified = false;
+  editingUser = null;
+  document.getElementById('adminGate').style.display = 'block';
+  document.getElementById('adminPass').value = '';
+  document.getElementById('adminError').style.display = 'none';
+  document.getElementById('userModal').classList.remove('hidden');
+  renderUserList();
+}
+
+function closeUserModal() {
+  document.getElementById('userModal').classList.add('hidden');
+  cancelEdit();
+}
+
+function verifyAdmin() {
+  const p = document.getElementById('adminPass').value;
+  const users = loadUsers();
+  // cualquier usuario válido puede administrar (o solo el admin)
+  if (users[ADMIN_USER] && users[ADMIN_USER] === p) {
+    adminVerified = true;
+    document.getElementById('adminGate').style.display = 'none';
+  } else {
+    document.getElementById('adminError').style.display = 'block';
+  }
+}
+
+function renderUserList() {
+  const users = loadUsers();
+  const ul = document.getElementById('userList');
+  ul.innerHTML = '';
+  Object.entries(users).forEach(([u, p]) => {
+    const li = document.createElement('li');
+    li.className = 'user-item';
+    li.innerHTML = `
+      <div>
+        <div class="user-item-name">&#128100; ${u}</div>
+        <div class="user-item-pass">${'•'.repeat(Math.min(p.length, 10))}</div>
+      </div>
+      <div class="user-actions">
+        <button class="btn-icon btn-edit" title="Editar" onclick="startEdit('${u}')">✏️</button>
+        <button class="btn-icon btn-del"  title="Eliminar" onclick="deleteUser('${u}')">🗑️</button>
+      </div>`;
+    ul.appendChild(li);
+  });
+}
+
+function startEdit(user) {
+  if (!adminVerified) { alert('Debes verificar la contraseña de administrador primero.'); return; }
+  editingUser = user;
+  const users = loadUsers();
+  document.getElementById('newUser').value = user;
+  document.getElementById('newPass').value = users[user];
+  document.getElementById('formTitle').textContent = `Editando: ${user}`;
+  document.getElementById('newUser').focus();
+}
+
+function cancelEdit() {
+  editingUser = null;
+  document.getElementById('newUser').value = '';
+  document.getElementById('newPass').value = '';
+  document.getElementById('formTitle').textContent = 'Nuevo usuario';
+  showMsg('', '');
+}
+
+function deleteUser(user) {
+  if (!adminVerified) { alert('Debes verificar la contraseña de administrador primero.'); return; }
+  if (!confirm(`¿Eliminar usuario "${user}"?`)) return;
+  const users = loadUsers();
+  delete users[user];
+  saveUsers(users);
+  renderUserList();
+  showMsg(`Usuario "${user}" eliminado.`, 'ok');
+}
+
+function saveUser() {
+  if (!adminVerified) { alert('Debes verificar la contraseña de administrador primero.'); return; }
+  const u = document.getElementById('newUser').value.trim().toLowerCase();
+  const p = document.getElementById('newPass').value.trim();
+  if (!u || !p) { showMsg('Completa usuario y contraseña.', 'err'); return; }
+  const users = loadUsers();
+  if (editingUser && editingUser !== u) delete users[editingUser];
+  users[u] = p;
+  saveUsers(users);
+  renderUserList();
+  showMsg(editingUser ? `Usuario "${u}" actualizado.` : `Usuario "${u}" creado.`, 'ok');
+  cancelEdit();
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById('modalMsg');
+  el.textContent = text;
+  el.className = 'modal-msg ' + (type || '');
+}
+
+// ─── PALETTE ─────────────────────────────────────────────────────────────────
 const P = {
-  primary:    '#5f2e0a',
-  secondary:  '#A0522D',
-  accent:     '#dec290',
-  success:    '#6B8E23',
-  warning:    '#A0522D',
-  danger:     '#7B2D00',
-  info:       '#8B7355',
-  textLight:  '#8D6E63',
-  surface:    '#FFFFFF',
-  bg:         '#d1b684',
-  border:     '#dec290',
+  primary:   '#5f2e0a', secondary: '#A0522D', accent: '#dec290',
+  success:   '#6B8E23', warning:   '#A0522D', danger: '#7B2D00',
+  info:      '#8B7355', textLight: '#8D6E63', surface:'#FFFFFF',
+  bg:        '#d1b684', border:    '#dec290',
 };
 
-// ─── DATA ─────────────────────────────────────────────────────────────────────
+// ─── DATA ────────────────────────────────────────────────────────────────────
 const RAW = {
   2022: {
-    Sep: { v:29597991, c:13319096, g:14208955, r:2069940  },
-    Oct: { v:39470970, c:17761936, g:13191022, r:8518011  },
-    Nov: { v:58964607, c:26534073, g:22559821, r:9870713  },
-    Dic: { v:125204431,c:56341994, g:55752692, r:13109745 },
+    Sep:{v:29597991,c:13319096,g:14208955,r:2069940},
+    Oct:{v:39470970,c:17761936,g:13191022,r:8518011},
+    Nov:{v:58964607,c:26534073,g:22559821,r:9870713},
+    Dic:{v:125204431,c:56341994,g:55752692,r:13109745},
   },
   2023: {
-    Ene: { v:45416050, c:20437223, g:8988843,  r:15989985 },
-    Feb: { v:35801353, c:16110609, g:8680730,  r:11010014 },
-    Mar: { v:29202751, c:14601376, g:10360178, r:4241198  },
-    Abr: { v:38028001, c:19014001, g:14119591, r:4894409  },
-    May: { v:48873851, c:24436925, g:15614310, r:8822616  },
-    Jun: { v:29710743, c:14855371, g:13331131, r:1524240  },
-    Jul: { v:30740504, c:15370252, g:12705607, r:2664645  },
-    Ago: { v:57375331, c:28687666, g:13451751, r:15235914 },
-    Sep: { v:33497042, c:16748521, g:11742957, r:5005564  },
-    Oct: { v:39045630, c:17570534, g:16423200, r:5051896  },
-    Nov: { v:63541765, c:28593794, g:20734001, r:14213970 },
-    Dic: { v:85540767, c:38493345, g:20479161, r:26568261 },
+    Ene:{v:45416050,c:20437223,g:8988843,r:15989985},
+    Feb:{v:35801353,c:16110609,g:8680730,r:11010014},
+    Mar:{v:29202751,c:14601376,g:10360178,r:4241198},
+    Abr:{v:38028001,c:19014001,g:14119591,r:4894409},
+    May:{v:48873851,c:24436925,g:15614310,r:8822616},
+    Jun:{v:29710743,c:14855371,g:13331131,r:1524240},
+    Jul:{v:30740504,c:15370252,g:12705607,r:2664645},
+    Ago:{v:57375331,c:28687666,g:13451751,r:15235914},
+    Sep:{v:33497042,c:16748521,g:11742957,r:5005564},
+    Oct:{v:39045630,c:17570534,g:16423200,r:5051896},
+    Nov:{v:63541765,c:28593794,g:20734001,r:14213970},
+    Dic:{v:85540767,c:38493345,g:20479161,r:26568261},
   },
   2024: {
-    Ene: { v:48993676, c:24496838, g:10770575, r:13726263 },
-    Feb: { v:47402108, c:23701054, g:9971395,  r:13729659 },
-    Mar: { v:33640854, c:20184512, g:11760407, r:1695934  },
-    Abr: { v:27237787, c:16342672, g:9677269,  r:1217846  },
-    May: { v:25984537, c:12992269, g:10207974, r:2784295  },
-    Jun: { v:18999118, c:9499559,  g:9850423,  r:-350864  },
-    Jul: { v:20288235, c:10144118, g:9694039,  r:450079   },
-    Ago: { v:18208676, c:9104338,  g:7029248,  r:2075090  },
-    Sep: { v:15684927, c:8626710,  g:6379404,  r:678813   },
-    Oct: { v:40858811, c:20429405, g:12858393, r:7571012  },
-    Nov: { v:74411483, c:40926316, g:15545162, r:17940005 },
-    Dic: { v:118598691,c:65229280, g:23645661, r:29723750 },
+    Ene:{v:48993676,c:24496838,g:10770575,r:13726263},
+    Feb:{v:47402108,c:23701054,g:9971395,r:13729659},
+    Mar:{v:33640854,c:20184512,g:11760407,r:1695934},
+    Abr:{v:27237787,c:16342672,g:9677269,r:1217846},
+    May:{v:25984537,c:12992269,g:10207974,r:2784295},
+    Jun:{v:18999118,c:9499559,g:9850423,r:-350864},
+    Jul:{v:20288235,c:10144118,g:9694039,r:450079},
+    Ago:{v:18208676,c:9104338,g:7029248,r:2075090},
+    Sep:{v:15684927,c:8626710,g:6379404,r:678813},
+    Oct:{v:40858811,c:20429405,g:12858393,r:7571012},
+    Nov:{v:74411483,c:40926316,g:15545162,r:17940005},
+    Dic:{v:118598691,c:65229280,g:23645661,r:29723750},
   },
   2025: {
-    Ene: { v:52097735, c:25701122, g:14217611, r:12179002 },
-    Feb: { v:31494748, c:16436203, g:8952717,  r:6105828  },
-    Mar: { v:57640933, c:43281510, g:9400312,  r:4959111  },
-    Abr: { v:27539622, c:13333592, g:8930399,  r:5275630  },
-    May: { v:35458716, c:16615321, g:13288190, r:5555204  },
-    Jun: { v:8515454,  c:3914736,  g:4816147,  r:-215429  },
-    Jul: { v:15802521, c:8337297,  g:7806082,  r:-340858  },
-    Ago: { v:22743866, c:13005179, g:9704230,  r:34457    },
-    Sep: { v:14399622, c:5972302,  g:7112565,  r:1314754  },
-    Oct: { v:24364034, c:11076965, g:8740461,  r:4546608  },
-    Nov: { v:84647941, c:38784995, g:16448018, r:29414928 },
-    Dic: { v:106385787,c:51464173, g:22322086, r:32599529 },
+    Ene:{v:52097735,c:25701122,g:14217611,r:12179002},
+    Feb:{v:31494748,c:16436203,g:8952717,r:6105828},
+    Mar:{v:57640933,c:43281510,g:9400312,r:4959111},
+    Abr:{v:27539622,c:13333592,g:8930399,r:5275630},
+    May:{v:35458716,c:16615321,g:13288190,r:5555204},
+    Jun:{v:8515454,c:3914736,g:4816147,r:-215429},
+    Jul:{v:15802521,c:8337297,g:7806082,r:-340858},
+    Ago:{v:22743866,c:13005179,g:9704230,r:34457},
+    Sep:{v:14399622,c:5972302,g:7112565,r:1314754},
+    Oct:{v:24364034,c:11076965,g:8740461,r:4546608},
+    Nov:{v:84647941,c:38784995,g:16448018,r:29414928},
+    Dic:{v:106385787,c:51464173,g:22322086,r:32599529},
   },
   2026: {
-    Ene: { v:63350775, c:29087373, g:16632413, r:17630988 },
-    Feb: { v:48128916, c:25314464, g:12747664, r:10066787 },
-    Mar: { v:33693204, c:21702003, g:12505430, r:-514229  },
+    Ene:{v:63350775,c:29087373,g:16632413,r:17630988},
+    Feb:{v:48128916,c:25314464,g:12747664,r:10066787},
+    Mar:{v:33693204,c:21702003,g:12505430,r:-514229},
   }
 };
 
@@ -608,44 +482,40 @@ const MONTHS_ORDER = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct
 const ALL_YEARS    = [2022,2023,2024,2025,2026];
 
 const PERIODS = [
-  { key:'Q1', label:'Q1', months:['Ene','Feb','Mar'] },
-  { key:'Q2', label:'Q2', months:['Abr','May','Jun'] },
-  { key:'Q3', label:'Q3', months:['Jul','Ago','Sep'] },
-  { key:'Q4', label:'Q4', months:['Oct','Nov','Dic'] },
-  { key:'S1', label:'S1', months:['Ene','Feb','Mar','Abr','May','Jun'] },
-  { key:'S2', label:'S2', months:['Jul','Ago','Sep','Oct','Nov','Dic'] },
-  { key:'AÑO', label:'Año', months: MONTHS_ORDER },
+  {key:'Q1',label:'Q1',months:['Ene','Feb','Mar']},
+  {key:'Q2',label:'Q2',months:['Abr','May','Jun']},
+  {key:'Q3',label:'Q3',months:['Jul','Ago','Sep']},
+  {key:'Q4',label:'Q4',months:['Oct','Nov','Dic']},
+  {key:'S1',label:'S1',months:['Ene','Feb','Mar','Abr','May','Jun']},
+  {key:'S2',label:'S2',months:['Jul','Ago','Sep','Oct','Nov','Dic']},
+  {key:'AÑO',label:'Año',months:MONTHS_ORDER},
 ];
 
 const METRICS = [
-  { key:'v', label:'Ventas Netas', cls:'c-ventas',    color: P.primary   },
-  { key:'c', label:'Costo',        cls:'c-costo',     color: P.danger    },
-  { key:'g', label:'Gastos',       cls:'c-gastos',    color: P.warning   },
-  { key:'r', label:'Resultado',    cls:'c-resultado', color: P.success   },
+  {key:'v',label:'Ventas Netas',cls:'c-ventas',   color:P.primary},
+  {key:'c',label:'Costo',       cls:'c-costo',    color:P.danger},
+  {key:'g',label:'Gastos',      cls:'c-gastos',   color:P.warning},
+  {key:'r',label:'Resultado',   cls:'c-resultado',color:P.success},
 ];
 
-// ─── STATE ────────────────────────────────────────────────────────────────────
+// ─── STATE ───────────────────────────────────────────────────────────────────
 let selYears   = new Set([2023,2024,2025,2026]);
 let selMonths  = new Set(MONTHS_ORDER);
 let selMetrics = new Set(['v','r']);
-let selPeriod  = null; // null = meses libres
+let selPeriod  = null;
 let chartType  = 'bar';
+let chartView  = 'chrono'; // 'chrono' | 'compare'
 
 let mainChartInst, donutChartInst, yearChartInst, marginChartInst;
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 const fmt     = n => { if(Math.abs(n)>=1e6) return '$'+(n/1e6).toFixed(1)+'M'; if(Math.abs(n)>=1e3) return '$'+(n/1e3).toFixed(0)+'K'; return '$'+n.toLocaleString('es-CL'); };
 const fmtFull = n => (n<0?'-':'')+'$'+Math.abs(n).toLocaleString('es-CL');
-const sum     = (rows, key) => rows.reduce((a,b) => a+b[key], 0);
+const sum     = (rows,key) => rows.reduce((a,b)=>a+b[key],0);
 
-const tooltipDefaults = {
-  backgroundColor: P.surface,
-  borderColor:     P.border,
-  borderWidth:     1,
-  titleColor:      P.primary,
-  bodyColor:       P.textLight,
-  padding:         10,
-  cornerRadius:    8,
+const TTdefaults = {
+  backgroundColor:P.surface, borderColor:P.border, borderWidth:1,
+  titleColor:P.primary, bodyColor:P.textLight, padding:10, cornerRadius:8,
 };
 
 function getFiltered() {
@@ -655,7 +525,7 @@ function getFiltered() {
     for (const mo of MONTHS_ORDER) {
       if (!selMonths.has(mo)) continue;
       if (!RAW[year][mo]) continue;
-      rows.push({ year, mo, ...RAW[year][mo] });
+      rows.push({year,mo,...RAW[year][mo]});
     }
   }
   return rows;
@@ -667,28 +537,22 @@ function buildChips() {
   yc.innerHTML = '';
   ALL_YEARS.forEach(y => {
     const d = document.createElement('div');
-    d.className = 'chip' + (selYears.has(y) ? ' active' : '');
+    d.className = 'chip'+(selYears.has(y)?' active':'');
     d.textContent = y;
     d.onclick = () => { if(selYears.has(y)&&selYears.size>1) selYears.delete(y); else selYears.add(y); buildChips(); refresh(); };
     yc.appendChild(d);
   });
 
-  // Períodos rápidos
   const pc = document.getElementById('periodChips');
   pc.innerHTML = '';
   PERIODS.forEach(p => {
     const d = document.createElement('div');
-    d.className = 'chip c-period' + (selPeriod === p.key ? ' active' : '');
+    d.className = 'chip c-period'+(selPeriod===p.key?' active':'');
     d.textContent = p.label;
     d.title = p.months.join(', ');
     d.onclick = () => {
-      if (selPeriod === p.key) {
-        selPeriod = null; // deselect → libera meses
-        selMonths = new Set(MONTHS_ORDER);
-      } else {
-        selPeriod = p.key;
-        selMonths = new Set(p.months);
-      }
+      if(selPeriod===p.key){ selPeriod=null; selMonths=new Set(MONTHS_ORDER); }
+      else { selPeriod=p.key; selMonths=new Set(p.months); }
       buildChips(); refresh();
     };
     pc.appendChild(d);
@@ -698,10 +562,10 @@ function buildChips() {
   mc.innerHTML = '';
   MONTHS_ORDER.forEach(m => {
     const d = document.createElement('div');
-    d.className = 'chip' + (selMonths.has(m) ? ' active' : '');
+    d.className = 'chip'+(selMonths.has(m)?' active':'');
     d.textContent = m;
     d.onclick = () => {
-      selPeriod = null; // al tocar meses individualmente, se rompe el período
+      selPeriod=null;
       if(selMonths.has(m)&&selMonths.size>1) selMonths.delete(m); else selMonths.add(m);
       buildChips(); refresh();
     };
@@ -712,254 +576,244 @@ function buildChips() {
   mec.innerHTML = '';
   METRICS.forEach(m => {
     const d = document.createElement('div');
-    d.className = 'chip ' + m.cls + (selMetrics.has(m.key) ? ' active' : '');
+    d.className = 'chip '+m.cls+(selMetrics.has(m.key)?' active':'');
     d.textContent = m.label;
     d.onclick = () => { if(selMetrics.has(m.key)&&selMetrics.size>1) selMetrics.delete(m.key); else selMetrics.add(m.key); buildChips(); refresh(); };
     mec.appendChild(d);
   });
 }
 
-// ─── KPIs ─────────────────────────────────────────────────────────────────────
+// ─── KPIs ────────────────────────────────────────────────────────────────────
 function buildKPIs(rows) {
-  const totals = { v: sum(rows,'v'), c: sum(rows,'c'), g: sum(rows,'g'), r: sum(rows,'r') };
-  const pct = k => totals.v > 0 ? ((totals[k]/totals.v)*100).toFixed(0)+'%' : '-';
-  const kpiDefs = [
-    { key:'v', color: P.primary,   sub: rows.length + ' períodos' },
-    { key:'c', color: P.danger,    sub: pct('c') + ' sobre ventas' },
-    { key:'g', color: P.warning,   sub: pct('g') + ' sobre ventas' },
-    { key:'r', color: P.success,   sub: pct('r') + ' margen neto' },
+  const totals = {v:sum(rows,'v'),c:sum(rows,'c'),g:sum(rows,'g'),r:sum(rows,'r')};
+  const pct = k => totals.v>0?((totals[k]/totals.v)*100).toFixed(0)+'%':'-';
+  const defs = [
+    {key:'v',color:P.primary,  sub:rows.length+' períodos'},
+    {key:'c',color:P.danger,   sub:pct('c')+' sobre ventas'},
+    {key:'g',color:P.warning,  sub:pct('g')+' sobre ventas'},
+    {key:'r',color:P.success,  sub:pct('r')+' margen neto'},
   ];
   const el = document.getElementById('kpis');
   el.innerHTML = '';
-  kpiDefs.forEach(k => {
-    const v   = totals[k.key];
-    const met = METRICS.find(m => m.key === k.key);
-    const div = document.createElement('div');
-    div.className = 'kpi';
-    div.style.setProperty('--kpi-color', k.color);
-    const badge = k.key === 'r'
-      ? `<span class="kpi-badge ${v>=0?'badge-up':'badge-down'}">${v>=0?'▲':'▼'} ${Math.abs(parseFloat(pct('r')))}%</span>`
-      : '';
-    div.innerHTML = `
-      <div class="kpi-label">${met.label}</div>
-      <div class="kpi-value" style="color:${k.color}">${fmt(v)}</div>
-      <div class="kpi-sub">${k.sub}</div>
-      ${badge}
-    `;
+  defs.forEach(k => {
+    const v=totals[k.key], met=METRICS.find(m=>m.key===k.key);
+    const div=document.createElement('div');
+    div.className='kpi'; div.style.setProperty('--kpi-color',k.color);
+    const badge = k.key==='r'
+      ? `<span class="kpi-badge ${v>=0?'badge-up':'badge-down'}">${v>=0?'▲':'▼'} ${Math.abs(parseFloat(pct('r')))}%</span>` : '';
+    div.innerHTML=`<div class="kpi-label">${met.label}</div><div class="kpi-value" style="color:${k.color}">${fmt(v)}</div><div class="kpi-sub">${k.sub}</div>${badge}`;
     el.appendChild(div);
   });
 }
 
-// ─── MAIN CHART ───────────────────────────────────────────────────────────────
-function buildMainChart(rows) {
-  const labels   = rows.map(r => r.mo + ' ' + String(r.year).slice(2));
-  const datasets = METRICS
-    .filter(m => selMetrics.has(m.key))
-    .map(m => {
-      // Para barras: cada barra puede tener color individual (negativo = rojo)
-      const bgColors = chartType === 'bar'
-        ? rows.map(r => r[m.key] < 0 ? P.danger + 'dd' : m.color + 'dd')
-        : m.color + '1a';
-      const bdColors = chartType === 'bar'
-        ? rows.map(r => r[m.key] < 0 ? P.danger : m.color)
-        : m.color;
-      return {
-        label:           m.label,
-        data:            rows.map(r => r[m.key]),
-        backgroundColor: bgColors,
-        borderColor:     bdColors,
-        borderWidth:     chartType==='line' ? 2.5 : 0,
-        borderRadius:    chartType==='bar'  ? 5   : 0,
-        fill:            chartType==='line',
-        tension:         0.4,
-        pointRadius:     chartType==='line' ? 3 : 0,
-        pointHoverRadius: 5,
-        pointBackgroundColor: chartType==='line'
-          ? rows.map(r => r[m.key] < 0 ? P.danger : m.color)
-          : m.color,
-      };
-    });
+// ─── MAIN CHART ──────────────────────────────────────────────────────────────
+function barColors(data, baseColor) {
+  return data.map(v => v < 0 ? P.danger+'dd' : baseColor+'dd');
+}
+function barBorders(data, baseColor) {
+  return data.map(v => v < 0 ? P.danger : baseColor);
+}
 
+function buildMainChart(rows) {
   const ctx = document.getElementById('mainChart').getContext('2d');
   if (mainChartInst) mainChartInst.destroy();
-  mainChartInst = new Chart(ctx, {
-    type: chartType,
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      interaction: { mode:'index', intersect:false },
-      plugins: {
-        legend: { labels: { color: P.textLight, font:{size:11}, boxWidth:10, padding:14 } },
-        tooltip: { ...tooltipDefaults, callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + fmtFull(ctx.raw) } }
-      },
-      scales: {
-        x: { ticks:{color:P.textLight,font:{size:10}}, grid:{color:P.border+'33'} },
-        y: { ticks:{color:P.textLight,font:{size:10}, callback: v=>fmt(v)}, grid:{color:P.border+'55'} }
-      }
-    }
-  });
-}
 
-// ─── DONUT ────────────────────────────────────────────────────────────────────
-function buildDonut(rows) {
-  const tv = sum(rows,'v'), tc = sum(rows,'c'), tg = sum(rows,'g'), tr = sum(rows,'r');
-  const ctx = document.getElementById('donutChart').getContext('2d');
-  if (donutChartInst) donutChartInst.destroy();
-  donutChartInst = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Costo','Gastos','Resultado'],
-      datasets: [{
-        data:            [tc, tg, Math.max(tr,0)],
-        backgroundColor: [P.danger+'cc', P.warning+'cc', P.success+'cc'],
-        borderColor:     P.bg,
-        borderWidth:     4,
-        hoverOffset:     8,
-      }]
-    },
-    options: {
-      responsive: true,
-      cutout: '68%',
-      plugins: {
-        legend: { position:'bottom', labels:{color:P.textLight,font:{size:11},boxWidth:10,padding:16} },
-        tooltip: { ...tooltipDefaults, callbacks: { label: ctx => ' '+ctx.label+': '+fmt(ctx.raw)+' ('+(tv>0?(ctx.raw/tv*100).toFixed(0):0)+'%)' } }
-      }
-    }
-  });
-}
-
-// ─── YEAR BAR ─────────────────────────────────────────────────────────────────
-function buildYearChart() {
-  const years    = [...selYears].sort();
-  const datasets = METRICS
-    .filter(m => selMetrics.has(m.key))
-    .map(m => ({
-      label:           m.label,
-      data:            years.map(y => Object.values(RAW[y]).reduce((a,b) => a+b[m.key], 0)),
-      backgroundColor: m.color + 'cc',
-      borderRadius:    6,
-      borderWidth:     0,
-    }));
-
-  const ctx = document.getElementById('yearChart').getContext('2d');
-  if (yearChartInst) yearChartInst.destroy();
-  yearChartInst = new Chart(ctx, {
-    type: 'bar',
-    data: { labels: years.map(String), datasets },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { labels:{color:P.textLight,font:{size:11},boxWidth:10,padding:12} },
-        tooltip: { ...tooltipDefaults, callbacks: { label: ctx => ' '+ctx.dataset.label+': '+fmtFull(ctx.raw) } }
-      },
-      scales: {
-        x: { ticks:{color:P.textLight,font:{size:11}}, grid:{color:P.border+'33'} },
-        y: { ticks:{color:P.textLight,font:{size:10},callback: v=>fmt(v)}, grid:{color:P.border+'55'} }
-      }
-    }
-  });
-}
-
-// ─── MARGIN LINE ──────────────────────────────────────────────────────────────
-function buildMarginChart(rows) {
-  const labels = rows.map(r => r.mo + ' ' + String(r.year).slice(2));
-  const data   = rows.map(r => r.v > 0 ? parseFloat((r.r/r.v*100).toFixed(1)) : 0);
-  const ctx    = document.getElementById('marginChart').getContext('2d');
-  if (marginChartInst) marginChartInst.destroy();
-  marginChartInst = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Margen %',
-        data,
-        borderColor:    P.success,
-        backgroundColor: (ctx) => {
-          const g = ctx.chart.ctx.createLinearGradient(0,0,0,200);
-          g.addColorStop(0, P.success+'44'); g.addColorStop(1, P.success+'00');
-          return g;
-        },
-        borderWidth:         2.5,
-        fill:                true,
-        tension:             0.4,
-        pointRadius:         3,
-        pointBackgroundColor: d => d.raw < 0 ? P.danger : P.success,
-        pointHoverRadius:    5,
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { display: false },
-        tooltip: { ...tooltipDefaults, callbacks: { label: ctx => ' Margen: '+ctx.raw+'%' } }
-      },
-      scales: {
-        x: { ticks:{color:P.textLight,font:{size:10}}, grid:{color:P.border+'33'} },
-        y: { ticks:{color:P.textLight,font:{size:10},callback: v=>v+'%'}, grid:{color:P.border+'55'} }
-      }
-    }
-  });
-}
-
-// ─── TABLE ────────────────────────────────────────────────────────────────────
-function buildTable(rows) {
-  const t = document.getElementById('detailTable');
-  const activeMetrics = METRICS.filter(m => selMetrics.has(m.key));
-  let html = '<thead><tr><th>Período</th>';
-  activeMetrics.forEach(m => html += `<th style="color:${m.color}">${m.label}</th>`);
-  if (selMetrics.has('v') && selMetrics.has('r')) html += '<th>Margen</th>';
-  html += '</tr></thead><tbody>';
-
-  rows.forEach(r => {
-    html += `<tr><td class="bold">${r.mo} ${r.year}</td>`;
-    activeMetrics.forEach(m => {
-      const v = r[m.key];
-      html += `<td class="${m.key==='r'?(v<0?' neg':' pos'):''}">${fmtFull(v)}</td>`;
+  if (chartView === 'chrono') {
+    // Vista cronológica: un dataset por concepto, labels = mes+año
+    const labels = rows.map(r => r.mo+' '+String(r.year).slice(2));
+    const datasets = METRICS.filter(m=>selMetrics.has(m.key)).map(m => {
+      const data = rows.map(r=>r[m.key]);
+      return {
+        label: m.label, data,
+        backgroundColor: chartType==='bar' ? barColors(data,m.color) : m.color+'1a',
+        borderColor:     chartType==='bar' ? barBorders(data,m.color) : m.color,
+        borderWidth: chartType==='line'?2.5:0,
+        borderRadius: chartType==='bar'?5:0,
+        fill: chartType==='line', tension:0.4,
+        pointRadius: chartType==='line'?3:0, pointHoverRadius:5,
+        pointBackgroundColor: chartType==='line' ? rows.map(r=>r[m.key]<0?P.danger:m.color) : m.color,
+      };
     });
-    if (selMetrics.has('v') && selMetrics.has('r')) {
-      const pct = r.v > 0 ? (r.r/r.v*100).toFixed(1) : '0';
-      html += `<td class="${parseFloat(pct)<0?' neg':' pos'}">${pct}%</td>`;
-    }
-    html += '</tr>';
-  });
+    mainChartInst = new Chart(ctx,{
+      type:chartType, data:{labels,datasets},
+      options:{
+        responsive:true, interaction:{mode:'index',intersect:false},
+        plugins:{
+          legend:{labels:{color:P.textLight,font:{size:11},boxWidth:10,padding:14}},
+          tooltip:{...TTdefaults,callbacks:{label:c=>' '+c.dataset.label+': '+fmtFull(c.raw)}},
+        },
+        scales:{
+          x:{ticks:{color:P.textLight,font:{size:10}},grid:{color:P.border+'33'}},
+          y:{ticks:{color:P.textLight,font:{size:10},callback:v=>fmt(v)},grid:{color:P.border+'55'}},
+        }
+      }
+    });
 
-  html += `<tr style="border-top:2px solid ${P.border}"><td class="bold" style="color:${P.textLight}">TOTAL</td>`;
-  activeMetrics.forEach(m => {
-    const total = sum(rows, m.key);
-    html += `<td class="bold ${m.key==='r'?(total<0?' neg':' pos'):''}" style="color:${m.color}">${fmtFull(total)}</td>`;
-  });
-  if (selMetrics.has('v') && selMetrics.has('r')) {
-    const tv=sum(rows,'v'), tr2=sum(rows,'r');
-    const pct = tv>0?(tr2/tv*100).toFixed(1):0;
-    html += `<td class="bold ${parseFloat(pct)<0?' neg':' pos'}">${pct}%</td>`;
+  } else {
+    // Vista comparativa: agrupa por mes, un dataset por (año × concepto)
+    const activeMos   = MONTHS_ORDER.filter(m=>selMonths.has(m));
+    const activeYears = [...selYears].sort();
+    const actMet      = METRICS.filter(m=>selMetrics.has(m.key));
+
+    // Labels = meses seleccionados
+    const labels = activeMos;
+
+    // Colores por año (variaciones del color base del concepto)
+    const yearAlphas = ['ff','cc','99','66','44'];
+    const datasets = [];
+    actMet.forEach(met => {
+      activeYears.forEach((yr,yi) => {
+        const data = activeMos.map(mo => RAW[yr]?.[mo]?.[met.key] ?? null);
+        const baseColor = met.color;
+        const alpha = yearAlphas[yi] || 'aa';
+        const color = baseColor + alpha;
+        datasets.push({
+          label: met.label+' '+yr,
+          data,
+          backgroundColor: data.map(v => v===null?'transparent':v<0?P.danger+'cc':color),
+          borderColor:     data.map(v => v===null?'transparent':v<0?P.danger:baseColor),
+          borderWidth: chartType==='line'?2.5:0,
+          borderRadius: 5,
+          fill: false, tension:0.4,
+          pointRadius: chartType==='line'?3:0, pointHoverRadius:5,
+          spanGaps: true,
+        });
+      });
+    });
+
+    mainChartInst = new Chart(ctx,{
+      type: chartType==='line'?'line':'bar',
+      data:{labels,datasets},
+      options:{
+        responsive:true, interaction:{mode:'index',intersect:false},
+        plugins:{
+          legend:{labels:{color:P.textLight,font:{size:10},boxWidth:10,padding:10}},
+          tooltip:{...TTdefaults,callbacks:{label:c=>' '+c.dataset.label+': '+(c.raw===null?'N/D':fmtFull(c.raw))}},
+        },
+        scales:{
+          x:{ticks:{color:P.textLight,font:{size:10}},grid:{color:P.border+'33'}},
+          y:{ticks:{color:P.textLight,font:{size:10},callback:v=>fmt(v)},grid:{color:P.border+'55'}},
+        }
+      }
+    });
   }
-  html += '</tr></tbody>';
-  t.innerHTML = html;
 }
 
-// ─── REFRESH ──────────────────────────────────────────────────────────────────
+// ─── DONUT ───────────────────────────────────────────────────────────────────
+function buildDonut(rows) {
+  const tv=sum(rows,'v'),tc=sum(rows,'c'),tg=sum(rows,'g'),tr=sum(rows,'r');
+  const ctx=document.getElementById('donutChart').getContext('2d');
+  if(donutChartInst) donutChartInst.destroy();
+  donutChartInst=new Chart(ctx,{
+    type:'doughnut',
+    data:{labels:['Costo','Gastos','Resultado'],datasets:[{
+      data:[tc,tg,Math.max(tr,0)],
+      backgroundColor:[P.danger+'cc',P.warning+'cc',P.success+'cc'],
+      borderColor:P.bg, borderWidth:4, hoverOffset:8,
+    }]},
+    options:{responsive:true,cutout:'68%',plugins:{
+      legend:{position:'bottom',labels:{color:P.textLight,font:{size:11},boxWidth:10,padding:16}},
+      tooltip:{...TTdefaults,callbacks:{label:c=>' '+c.label+': '+fmt(c.raw)+' ('+(tv>0?(c.raw/tv*100).toFixed(0):0)+'%)'}},
+    }}
+  });
+}
+
+// ─── YEAR BAR ────────────────────────────────────────────────────────────────
+function buildYearChart() {
+  const years=[...selYears].sort();
+  const datasets=METRICS.filter(m=>selMetrics.has(m.key)).map(m=>{
+    const data=years.map(y=>Object.values(RAW[y]).reduce((a,b)=>a+b[m.key],0));
+    return {label:m.label,data,
+      backgroundColor:data.map(v=>v<0?P.danger+'cc':m.color+'cc'),
+      borderRadius:6,borderWidth:0};
+  });
+  const ctx=document.getElementById('yearChart').getContext('2d');
+  if(yearChartInst) yearChartInst.destroy();
+  yearChartInst=new Chart(ctx,{type:'bar',data:{labels:years.map(String),datasets},options:{
+    responsive:true,
+    plugins:{legend:{labels:{color:P.textLight,font:{size:11},boxWidth:10,padding:12}},
+      tooltip:{...TTdefaults,callbacks:{label:c=>' '+c.dataset.label+': '+fmtFull(c.raw)}}},
+    scales:{x:{ticks:{color:P.textLight,font:{size:11}},grid:{color:P.border+'33'}},
+      y:{ticks:{color:P.textLight,font:{size:10},callback:v=>fmt(v)},grid:{color:P.border+'55'}}}
+  }});
+}
+
+// ─── MARGIN LINE ─────────────────────────────────────────────────────────────
+function buildMarginChart(rows) {
+  const labels=rows.map(r=>r.mo+' '+String(r.year).slice(2));
+  const data=rows.map(r=>r.v>0?parseFloat((r.r/r.v*100).toFixed(1)):0);
+  const ctx=document.getElementById('marginChart').getContext('2d');
+  if(marginChartInst) marginChartInst.destroy();
+  marginChartInst=new Chart(ctx,{type:'line',data:{labels,datasets:[{
+    label:'Margen %',data,
+    borderColor:P.success,
+    backgroundColor:ctx=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,200);g.addColorStop(0,P.success+'44');g.addColorStop(1,P.success+'00');return g;},
+    borderWidth:2.5,fill:true,tension:0.4,pointRadius:3,
+    pointBackgroundColor:d=>d.raw<0?P.danger:P.success,pointHoverRadius:5,
+  }]},options:{
+    responsive:true,
+    plugins:{legend:{display:false},tooltip:{...TTdefaults,callbacks:{label:c=>' Margen: '+c.raw+'%'}}},
+    scales:{x:{ticks:{color:P.textLight,font:{size:10}},grid:{color:P.border+'33'}},
+      y:{ticks:{color:P.textLight,font:{size:10},callback:v=>v+'%'},grid:{color:P.border+'55'}}}
+  }});
+}
+
+// ─── TABLE ───────────────────────────────────────────────────────────────────
+function buildTable(rows) {
+  const t=document.getElementById('detailTable');
+  const am=METRICS.filter(m=>selMetrics.has(m.key));
+  let html='<thead><tr><th>Período</th>';
+  am.forEach(m=>html+=`<th style="color:${m.color}">${m.label}</th>`);
+  if(selMetrics.has('v')&&selMetrics.has('r')) html+='<th>Margen</th>';
+  html+='</tr></thead><tbody>';
+  rows.forEach(r=>{
+    html+=`<tr><td class="bold">${r.mo} ${r.year}</td>`;
+    am.forEach(m=>{const v=r[m.key];html+=`<td class="${m.key==='r'?(v<0?' neg':' pos'):''}">${fmtFull(v)}</td>`;});
+    if(selMetrics.has('v')&&selMetrics.has('r')){const pct=r.v>0?(r.r/r.v*100).toFixed(1):'0';html+=`<td class="${parseFloat(pct)<0?' neg':' pos'}">${pct}%</td>`;}
+    html+='</tr>';
+  });
+  html+=`<tr style="border-top:2px solid ${P.border}"><td class="bold" style="color:${P.textLight}">TOTAL</td>`;
+  am.forEach(m=>{const total=sum(rows,m.key);html+=`<td class="bold ${m.key==='r'?(total<0?' neg':' pos'):''}" style="color:${m.color}">${fmtFull(total)}</td>`;});
+  if(selMetrics.has('v')&&selMetrics.has('r')){const tv=sum(rows,'v'),tr2=sum(rows,'r');const pct=tv>0?(tr2/tv*100).toFixed(1):0;html+=`<td class="bold ${parseFloat(pct)<0?' neg':' pos'}">${pct}%</td>`;}
+  html+='</tr></tbody>';
+  t.innerHTML=html;
+}
+
+// ─── REFRESH / TOGGLES ───────────────────────────────────────────────────────
 function refresh() {
-  const rows = getFiltered();
-  if (!rows.length) return;
-  buildKPIs(rows);
-  buildMainChart(rows);
-  buildDonut(rows);
-  buildYearChart();
-  buildMarginChart(rows);
-  buildTable(rows);
+  const rows=getFiltered();
+  if(!rows.length) return;
+  buildKPIs(rows); buildMainChart(rows); buildDonut(rows);
+  buildYearChart(); buildMarginChart(rows); buildTable(rows);
 }
 
 function setChartType(t) {
-  chartType = t;
-  document.getElementById('btnBar').classList.toggle('active', t==='bar');
-  document.getElementById('btnLine').classList.toggle('active', t==='line');
-  const rows = getFiltered();
-  if (rows.length) buildMainChart(rows);
+  chartType=t;
+  document.getElementById('btnBar').classList.toggle('active',t==='bar');
+  document.getElementById('btnLine').classList.toggle('active',t==='line');
+  const rows=getFiltered(); if(rows.length) buildMainChart(rows);
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-Chart.defaults.color       = P.textLight;
-Chart.defaults.borderColor = P.border;
+function setChartView(v) {
+  chartView=v;
+  document.getElementById('btnComp').classList.toggle('active',v==='compare');
+  document.getElementById('btnCron').classList.toggle('active',v==='chrono');
+  const rows=getFiltered(); if(rows.length) buildMainChart(rows);
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  ['loginUser','loginPass'].forEach(id=>{
+    document.getElementById(id).addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+  });
+  document.getElementById('loginVersion').textContent='v'+VERSION;
+  if(sessionStorage.getItem('fc_auth')==='1'){
+    document.getElementById('loginOverlay').classList.add('hidden');
+  }
+});
+
+Chart.defaults.color=P.textLight;
+Chart.defaults.borderColor=P.border;
 buildChips();
 refresh();
 </script>
