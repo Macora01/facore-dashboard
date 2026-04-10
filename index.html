@@ -34,6 +34,102 @@
     padding: 24px;
   }
 
+  /* ── LOGIN OVERLAY ───────────────────────────────────────── */
+  #loginOverlay {
+    position: fixed;
+    inset: 0;
+    background: var(--background-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 24px;
+  }
+  #loginOverlay.hidden { display: none; }
+  .login-card {
+    background: var(--white);
+    border: 1px solid var(--border-light);
+    border-radius: 20px;
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 8px 40px rgba(95,46,10,0.15);
+    text-align: center;
+  }
+  .login-logo {
+    width: 52px; height: 52px;
+    background: var(--primary-color);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 1.5rem;
+    color: var(--accent-color);
+  }
+  .login-card h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 4px;
+  }
+  .login-card p {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-bottom: 28px;
+  }
+  .login-field {
+    position: relative;
+    margin-bottom: 14px;
+    text-align: left;
+  }
+  .login-field label {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-light);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .login-field input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface2);
+    color: var(--text-color);
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.15s;
+    font-family: inherit;
+  }
+  .login-field input:focus { border-color: var(--secondary-color); background: var(--white); }
+  .login-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--primary-color);
+    color: var(--accent-color);
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.15s, transform 0.1s;
+    font-family: inherit;
+  }
+  .login-btn:hover { background: var(--secondary-color); transform: translateY(-1px); }
+  .login-btn:active { transform: translateY(0); }
+  .login-error {
+    font-size: 0.75rem;
+    color: var(--danger);
+    background: rgba(123,45,0,0.08);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-top: 12px;
+    display: none;
+  }
+  .login-error.show { display: block; }
+
   /* ── HEADER ─────────────────────────────────────────────── */
   header {
     display: flex;
@@ -302,6 +398,25 @@
 </head>
 <body>
 
+<!-- LOGIN OVERLAY -->
+<div id="loginOverlay">
+  <div class="login-card">
+    <div class="login-logo">&#9783;</div>
+    <h2>Cuadro de Resultado</h2>
+    <p>Facore Ltda. — Acceso restringido</p>
+    <div class="login-field">
+      <label>Usuario</label>
+      <input type="text" id="loginUser" placeholder="usuario" autocomplete="username" />
+    </div>
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" />
+    </div>
+    <button class="login-btn" onclick="doLogin()">Ingresar</button>
+    <div class="login-error" id="loginError">Usuario o contraseña incorrectos</div>
+  </div>
+</div>
+
 <header>
   <div class="header-left">
     <div class="header-icon">&#9783;</div>
@@ -378,6 +493,40 @@
 </div>
 
 <script>
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+const USERS = {
+  'facore': 'facore2024',
+  'mario':  'facore2024',
+};
+
+function doLogin() {
+  const user = document.getElementById('loginUser').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value;
+  const err  = document.getElementById('loginError');
+  if (USERS[user] && USERS[user] === pass) {
+    sessionStorage.setItem('fc_auth', '1');
+    document.getElementById('loginOverlay').classList.add('hidden');
+    err.classList.remove('show');
+  } else {
+    err.classList.add('show');
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginPass').focus();
+  }
+}
+
+// Permitir Enter en los campos
+document.addEventListener('DOMContentLoaded', () => {
+  ['loginUser','loginPass'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+      if (e.key === 'Enter') doLogin();
+    });
+  });
+  // Si ya está autenticado en esta sesión, saltar login
+  if (sessionStorage.getItem('fc_auth') === '1') {
+    document.getElementById('loginOverlay').classList.add('hidden');
+  }
+});
+
 // ─── PALETTE ──────────────────────────────────────────────────────────────────
 const P = {
   primary:    '#5f2e0a',
