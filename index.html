@@ -601,19 +601,30 @@ function buildMainChart(rows) {
   const labels   = rows.map(r => r.mo + ' ' + String(r.year).slice(2));
   const datasets = METRICS
     .filter(m => selMetrics.has(m.key))
-    .map(m => ({
-      label:           m.label,
-      data:            rows.map(r => r[m.key]),
-      backgroundColor: m.color + (chartType==='bar' ? 'dd' : '1a'),
-      borderColor:     m.color,
-      borderWidth:     chartType==='line' ? 2.5 : 0,
-      borderRadius:    chartType==='bar'  ? 5   : 0,
-      fill:            chartType==='line',
-      tension:         0.4,
-      pointRadius:     chartType==='line' ? 3 : 0,
-      pointHoverRadius: 5,
-      pointBackgroundColor: m.color,
-    }));
+    .map(m => {
+      // Para barras: cada barra puede tener color individual (negativo = rojo)
+      const bgColors = chartType === 'bar'
+        ? rows.map(r => r[m.key] < 0 ? P.danger + 'dd' : m.color + 'dd')
+        : m.color + '1a';
+      const bdColors = chartType === 'bar'
+        ? rows.map(r => r[m.key] < 0 ? P.danger : m.color)
+        : m.color;
+      return {
+        label:           m.label,
+        data:            rows.map(r => r[m.key]),
+        backgroundColor: bgColors,
+        borderColor:     bdColors,
+        borderWidth:     chartType==='line' ? 2.5 : 0,
+        borderRadius:    chartType==='bar'  ? 5   : 0,
+        fill:            chartType==='line',
+        tension:         0.4,
+        pointRadius:     chartType==='line' ? 3 : 0,
+        pointHoverRadius: 5,
+        pointBackgroundColor: chartType==='line'
+          ? rows.map(r => r[m.key] < 0 ? P.danger : m.color)
+          : m.color,
+      };
+    });
 
   const ctx = document.getElementById('mainChart').getContext('2d');
   if (mainChartInst) mainChartInst.destroy();
