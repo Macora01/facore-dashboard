@@ -125,10 +125,11 @@
     font-weight: 600;
     box-shadow: 0 2px 8px rgba(95,46,10,0.25);
   }
-  .chip.c-ventas.active  { background: var(--primary-color);   border-color: var(--primary-color); }
-  .chip.c-costo.active   { background: var(--danger);          border-color: var(--danger); }
-  .chip.c-gastos.active  { background: var(--warning);         border-color: var(--warning); }
+  .chip.c-ventas.active    { background: var(--primary-color); border-color: var(--primary-color); }
+  .chip.c-costo.active     { background: var(--danger);        border-color: var(--danger); }
+  .chip.c-gastos.active    { background: var(--warning);       border-color: var(--warning); }
   .chip.c-resultado.active { background: var(--success);       border-color: var(--success); color: #fff; }
+  .chip.c-period.active    { background: var(--info);          border-color: var(--info);    color: #fff; }
 
   /* ── KPIs ─────────────────────────────────────────────────── */
   .kpis {
@@ -315,6 +316,10 @@
     <label>Años</label>
     <div class="chips" id="yearChips"></div>
   </div>
+  <div class="filter-group" style="min-width:200px">
+    <label>Período rápido</label>
+    <div class="chips" id="periodChips"></div>
+  </div>
   <div class="filter-group">
     <label>Meses</label>
     <div class="chips" id="monthChips"></div>
@@ -448,6 +453,16 @@ const RAW = {
 const MONTHS_ORDER = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 const ALL_YEARS    = [2022,2023,2024,2025,2026];
 
+const PERIODS = [
+  { key:'Q1', label:'Q1', months:['Ene','Feb','Mar'] },
+  { key:'Q2', label:'Q2', months:['Abr','May','Jun'] },
+  { key:'Q3', label:'Q3', months:['Jul','Ago','Sep'] },
+  { key:'Q4', label:'Q4', months:['Oct','Nov','Dic'] },
+  { key:'S1', label:'S1', months:['Ene','Feb','Mar','Abr','May','Jun'] },
+  { key:'S2', label:'S2', months:['Jul','Ago','Sep','Oct','Nov','Dic'] },
+  { key:'AÑO', label:'Año', months: MONTHS_ORDER },
+];
+
 const METRICS = [
   { key:'v', label:'Ventas Netas', cls:'c-ventas',    color: P.primary   },
   { key:'c', label:'Costo',        cls:'c-costo',     color: P.danger    },
@@ -459,6 +474,7 @@ const METRICS = [
 let selYears   = new Set([2023,2024,2025,2026]);
 let selMonths  = new Set(MONTHS_ORDER);
 let selMetrics = new Set(['v','r']);
+let selPeriod  = null; // null = meses libres
 let chartType  = 'bar';
 
 let mainChartInst, donutChartInst, yearChartInst, marginChartInst;
@@ -503,13 +519,38 @@ function buildChips() {
     yc.appendChild(d);
   });
 
+  // Períodos rápidos
+  const pc = document.getElementById('periodChips');
+  pc.innerHTML = '';
+  PERIODS.forEach(p => {
+    const d = document.createElement('div');
+    d.className = 'chip c-period' + (selPeriod === p.key ? ' active' : '');
+    d.textContent = p.label;
+    d.title = p.months.join(', ');
+    d.onclick = () => {
+      if (selPeriod === p.key) {
+        selPeriod = null; // deselect → libera meses
+        selMonths = new Set(MONTHS_ORDER);
+      } else {
+        selPeriod = p.key;
+        selMonths = new Set(p.months);
+      }
+      buildChips(); refresh();
+    };
+    pc.appendChild(d);
+  });
+
   const mc = document.getElementById('monthChips');
   mc.innerHTML = '';
   MONTHS_ORDER.forEach(m => {
     const d = document.createElement('div');
     d.className = 'chip' + (selMonths.has(m) ? ' active' : '');
     d.textContent = m;
-    d.onclick = () => { if(selMonths.has(m)&&selMonths.size>1) selMonths.delete(m); else selMonths.add(m); buildChips(); refresh(); };
+    d.onclick = () => {
+      selPeriod = null; // al tocar meses individualmente, se rompe el período
+      if(selMonths.has(m)&&selMonths.size>1) selMonths.delete(m); else selMonths.add(m);
+      buildChips(); refresh();
+    };
     mc.appendChild(d);
   });
 
