@@ -140,63 +140,12 @@
   td.pos  { color:var(--success); font-weight:600; }
   td.bold { font-weight:700; color:var(--primary-color); }
 
-
-  /* ── PLAN vs REAL ── */
-  .view-mode-bar{display:flex;gap:6px;align-items:center;margin-bottom:16px;flex-wrap:wrap;padding:12px 18px;background:var(--surface);border-radius:12px;border:1px solid var(--border-light);box-shadow:0 2px 8px rgba(95,46,10,0.06);}
-  .view-mode-bar>label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--text-light);font-weight:600;margin-right:4px;white-space:nowrap;}
-  .view-btn{padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text-light);font-size:0.77rem;cursor:pointer;transition:all 0.18s ease;font-weight:500;font-family:inherit;}
-  .view-btn:hover{border-color:var(--secondary-color);color:var(--primary-color);background:#ede0c4;}
-  .view-btn.active{background:var(--primary-color);border-color:var(--primary-color);color:var(--accent-color);font-weight:600;box-shadow:0 2px 8px rgba(95,46,10,0.25);}
-  .btn-plan-link{font-size:0.72rem;color:var(--secondary-color);cursor:pointer;text-decoration:underline;opacity:0.85;background:none;border:none;font-family:inherit;padding:0;margin-left:8px;}
-  .btn-plan-link:hover{opacity:1;}
-  .kpi-plan-row{display:flex;gap:6px;margin-top:6px;align-items:center;flex-wrap:wrap;}
-  .kpi-plan-val{font-size:0.7rem;color:var(--text-light);background:var(--surface2);border:1px solid var(--border-light);border-radius:8px;padding:2px 8px;}
-  .kpi-plan-val span{font-weight:700;}
-  .badge-plan{display:inline-flex;align-items:center;gap:3px;font-size:0.68rem;padding:2px 7px;border-radius:8px;font-weight:700;border:1px dashed;}
-  .badge-plan.over{background:rgba(107,142,35,0.10);color:var(--success);border-color:var(--success);}
-  .badge-plan.under{background:rgba(123,45,0,0.08);color:var(--danger);border-color:var(--danger);}
-  td.plan-cell{color:var(--text-light);font-style:italic;}
-  th.plan-th{color:var(--info)!important;background:rgba(139,115,85,0.06)!important;font-style:italic;}
-  .plan-tag{font-size:0.6rem;background:rgba(107,142,35,0.12);color:var(--success);border:1px dashed var(--success);border-radius:4px;padding:1px 5px;margin-left:4px;vertical-align:middle;font-weight:600;}
-  .modal-plan{max-width:700px!important;}
-  .plan-grid-header{display:grid;grid-template-columns:64px repeat(4,1fr);gap:6px;margin-top:12px;}
-  .plan-grid-rows{display:grid;grid-template-columns:64px repeat(4,1fr);gap:5px;margin-top:4px;max-height:340px;overflow-y:auto;padding-right:4px;}
-  .plan-col-head{font-size:0.64rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-light);font-weight:700;padding:4px;text-align:right;}
-  .plan-month-label{font-size:0.78rem;font-weight:700;color:var(--primary-color);padding:7px 4px;display:flex;align-items:center;align-self:center;}
-  .plan-input{width:100%;padding:7px 8px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text-color);font-size:0.78rem;font-family:inherit;outline:none;transition:border-color 0.15s;text-align:right;}
-  .plan-input:focus{border-color:var(--secondary-color);background:var(--white);}
-  .plan-input.has-real{background:rgba(107,142,35,0.07);border-color:rgba(107,142,35,0.35);}
-
   /* ── RESPONSIVE ── */
   @media (max-width:900px) { body{padding:16px;} .charts-grid{grid-template-columns:1fr;} .bottom-row{grid-template-columns:1fr;} .kpis{grid-template-columns:repeat(2,1fr);} header h1{font-size:1.1rem;} }
   @media (max-width:480px) { .kpis{grid-template-columns:1fr;} .filters{flex-direction:column;} .modal-form{grid-template-columns:1fr;} }
 </style>
 </head>
 <body>
-
-<!-- MODAL PLAN 2026 -->
-<div class="modal-overlay hidden" id="planModal">
-  <div class="modal modal-plan">
-    <div class="modal-header">
-      <h3>&#128221; Plan 2026 &mdash; Valores planificados</h3>
-      <button class="modal-close" onclick="closePlanModal()">&#10005;</button>
-    </div>
-    <p style="font-size:0.75rem;color:var(--text-light);margin-bottom:4px;">Ingresa los valores del plan mensual. Los meses con datos reales aparecen marcados <span class="plan-tag">Real</span> y son editables.</p>
-    <div class="plan-grid-header">
-      <div></div>
-      <div class="plan-col-head">Ventas Netas</div>
-      <div class="plan-col-head">Costo</div>
-      <div class="plan-col-head">Gastos</div>
-      <div class="plan-col-head">Resultado</div>
-    </div>
-    <div class="plan-grid-rows" id="planFormRows"></div>
-    <div style="display:flex;gap:8px;margin-top:14px;align-items:center;flex-wrap:wrap;">
-      <button class="btn-save" onclick="savePlan()">&#10003; Guardar plan</button>
-      <button class="btn-save" style="background:var(--surface2);color:var(--text-light);border:1px solid var(--border);" onclick="closePlanModal()">Cancelar</button>
-      <span id="planMsg" class="modal-msg"></span>
-    </div>
-  </div>
-</div>
 
 <!-- LOGIN -->
 <div id="loginOverlay">
@@ -265,15 +214,6 @@
   </div>
 </header>
 
-<!-- VIEW MODE 2026 -->
-<div class="view-mode-bar" id="viewModeBar" style="display:none;">
-  <label>&#128197; 2026 Vista:</label>
-  <button class="view-btn active" id="btnReal"   onclick="setViewMode('real')">&#128200; Solo Real</button>
-  <button class="view-btn"        id="btnPlan"   onclick="setViewMode('plan')">&#128203; Solo Plan</button>
-  <button class="view-btn"        id="btnVsplan" onclick="setViewMode('vsplan')">&#9878; Real vs Plan</button>
-  <button class="btn-plan-link"   onclick="openPlanModal()">&#9998; Editar plan 2026</button>
-</div>
-
 <!-- FILTERS -->
 <div class="filters">
   <div class="filter-group">
@@ -333,7 +273,7 @@
 
 <script>
 // ─── VERSION ─────────────────────────────────────────────────────────────────
-const VERSION = '01.03.000';
+const VERSION = '01.02.000';
 
 // ─── USERS (localStorage) ────────────────────────────────────────────────────
 const ADMIN_USER = 'mario';
@@ -473,71 +413,6 @@ function showMsg(text, type) {
   el.className = 'modal-msg ' + (type || '');
 }
 
-
-// ─── PLAN 2026 ───────────────────────────────────────────────────────────────
-const PLAN_DEFAULT_2026 = {
-  Ene:{v:65000000,c:30000000,g:17000000,r:18000000},
-  Feb:{v:50000000,c:26000000,g:13000000,r:11000000},
-  Mar:{v:45000000,c:23000000,g:13500000,r:8500000},
-  Abr:{v:42000000,c:21000000,g:12000000,r:9000000},
-  May:{v:48000000,c:24000000,g:14000000,r:10000000},
-  Jun:{v:35000000,c:17500000,g:10500000,r:7000000},
-  Jul:{v:30000000,c:15000000,g:9500000,r:5500000},
-  Ago:{v:32000000,c:16000000,g:10000000,r:6000000},
-  Sep:{v:28000000,c:14000000,g:9000000,r:5000000},
-  Oct:{v:50000000,c:25000000,g:14000000,r:11000000},
-  Nov:{v:90000000,c:42000000,g:18000000,r:30000000},
-  Dic:{v:115000000,c:55000000,g:24000000,r:36000000},
-};
-function loadPlan(){try{const s=localStorage.getItem('fc_plan_2026');if(s)return JSON.parse(s);}catch(e){}return JSON.parse(JSON.stringify(PLAN_DEFAULT_2026));}
-function savePlanData(p){try{localStorage.setItem('fc_plan_2026',JSON.stringify(p));}catch(e){}}
-let PLAN_2026=loadPlan();
-let viewMode='real';
-function setViewMode(mode){
-  viewMode=mode;
-  ['Real','Plan','Vsplan'].forEach(m=>{const el=document.getElementById('btn'+m);if(el)el.classList.toggle('active',mode===m.toLowerCase());});
-  refresh();
-}
-function getFiltered2026Plan(){
-  const rows=[];
-  for(const mo of MONTHS_ORDER){if(!selMonths.has(mo))continue;if(!PLAN_2026[mo])continue;rows.push({year:2026,mo,...PLAN_2026[mo],_isPlan:true});}
-  return rows;
-}
-function openPlanModal(){
-  const plan=loadPlan();
-  const container=document.getElementById('planFormRows');
-  container.innerHTML='';
-  MONTHS_ORDER.forEach(mo=>{
-    const d=plan[mo]||{};
-    const isReal=!!(RAW[2026]&&RAW[2026][mo]);
-    const lbl=document.createElement('div');lbl.className='plan-month-label';
-    lbl.innerHTML=mo+(isReal?' <span class="plan-tag">Real</span>':'');
-    container.appendChild(lbl);
-    ['v','c','g','r'].forEach(k=>{
-      const inp=document.createElement('input');
-      inp.type='text';inp.className='plan-input'+(isReal?' has-real':'');
-      inp.id='plan_'+mo+'_'+k;
-      inp.value=d[k]!=null?Number(d[k]).toLocaleString('es-CL'):'';
-      inp.placeholder='0';
-      inp.addEventListener('focus',function(){this.value=this.value.replace(/\./g,'');});
-      inp.addEventListener('blur',function(){const n=parseInt(this.value.replace(/[^0-9]/g,''));this.value=isNaN(n)?'':n.toLocaleString('es-CL');});
-      container.appendChild(inp);
-    });
-  });
-  document.getElementById('planModal').classList.remove('hidden');
-}
-function closePlanModal(){document.getElementById('planModal').classList.add('hidden');}
-function savePlan(){
-  const plan={};
-  MONTHS_ORDER.forEach(mo=>{
-    const vals=['v','c','g','r'].map(k=>{const el=document.getElementById('plan_'+mo+'_'+k);return el?(parseInt(el.value.replace(/[^0-9]/g,''))||0):0;});
-    if(vals.some(x=>x>0))plan[mo]={v:vals[0],c:vals[1],g:vals[2],r:vals[3]};
-  });
-  savePlanData(plan);PLAN_2026=plan;
-  const msg=document.getElementById('planMsg');
-  msg.textContent='Plan guardado correctamente.';msg.className='modal-msg ok';
-  setTimeout(()=>{msg.className='modal-msg';closePlanModal();refresh();},1200);
-}
 // ─── PALETTE ─────────────────────────────────────────────────────────────────
 const P = {
   primary:   '#5f2e0a', secondary: '#A0522D', accent: '#dec290',
@@ -649,18 +524,8 @@ function getFiltered() {
     if (!selYears.has(year)) continue;
     for (const mo of MONTHS_ORDER) {
       if (!selMonths.has(mo)) continue;
-      if (year === 2026) {
-        if (viewMode === 'plan') {
-          if (!PLAN_2026[mo]) continue;
-          rows.push({year,mo,...PLAN_2026[mo],_isPlan:true});
-        } else {
-          if (!RAW[2026][mo]) continue;
-          rows.push({year,mo,...RAW[2026][mo],_isPlan:false});
-        }
-      } else {
-        if (!RAW[year][mo]) continue;
-        rows.push({year,mo,...RAW[year][mo]});
-      }
+      if (!RAW[year][mo]) continue;
+      rows.push({year,mo,...RAW[year][mo]});
     }
   }
   return rows;
@@ -720,38 +585,26 @@ function buildChips() {
 
 // ─── KPIs ────────────────────────────────────────────────────────────────────
 function buildKPIs(rows) {
-  const totals={v:sum(rows,'v'),c:sum(rows,'c'),g:sum(rows,'g'),r:sum(rows,'r')};
-  const pct=k=>totals.v>0?((totals[k]/totals.v)*100).toFixed(0)+'%':'-';
-  let planTotals=null;
-  if(viewMode==='vsplan'&&selYears.has(2026)){
-    const pr=getFiltered2026Plan();
-    if(pr.length)planTotals={v:sum(pr,'v'),c:sum(pr,'c'),g:sum(pr,'g'),r:sum(pr,'r')};
-  }
-  const defs=[
-    {key:'v',color:P.primary,sub:rows.length+' períodos'},
-    {key:'c',color:P.danger,sub:pct('c')+' sobre ventas'},
-    {key:'g',color:P.warning,sub:pct('g')+' sobre ventas'},
-    {key:'r',color:P.success,sub:pct('r')+' margen neto'},
+  const totals = {v:sum(rows,'v'),c:sum(rows,'c'),g:sum(rows,'g'),r:sum(rows,'r')};
+  const pct = k => totals.v>0?((totals[k]/totals.v)*100).toFixed(0)+'%':'-';
+  const defs = [
+    {key:'v',color:P.primary,  sub:rows.length+' períodos'},
+    {key:'c',color:P.danger,   sub:pct('c')+' sobre ventas'},
+    {key:'g',color:P.warning,  sub:pct('g')+' sobre ventas'},
+    {key:'r',color:P.success,  sub:pct('r')+' margen neto'},
   ];
-  const el=document.getElementById('kpis');el.innerHTML='';
-  defs.forEach(k=>{
-    const v=totals[k.key],met=METRICS.find(m=>m.key===k.key);
+  const el = document.getElementById('kpis');
+  el.innerHTML = '';
+  defs.forEach(k => {
+    const v=totals[k.key], met=METRICS.find(m=>m.key===k.key);
     const div=document.createElement('div');
-    div.className='kpi';div.style.setProperty('--kpi-color',k.color);
-    const badge=k.key==='r'?`<span class="kpi-badge ${v>=0?'badge-up':'badge-down'}">${v>=0?'▲':'▼'} ${Math.abs(parseFloat(pct('r')))}%</span>`:'';
-    let planHtml='';
-    if(planTotals){
-      const pv=planTotals[k.key],diff=v-pv;
-      const diffPct=pv!==0?((diff/Math.abs(pv))*100).toFixed(1):'0.0';
-      const isExp=k.key==='c'||k.key==='g';
-      const isGood=isExp?diff<=0:diff>=0;
-      planHtml=`<div class="kpi-plan-row"><div class="kpi-plan-val">Plan: <span>${fmt(pv)}</span></div><span class="badge-plan ${isGood?'over':'under'}">${diff>=0?'▲':'▼'} ${Math.abs(parseFloat(diffPct))}%</span></div>`;
-    }
-    div.innerHTML=`<div class="kpi-label">${met.label}</div><div class="kpi-value" style="color:${k.color}">${fmt(v)}</div><div class="kpi-sub">${k.sub}</div>${badge}${planHtml}`;
+    div.className='kpi'; div.style.setProperty('--kpi-color',k.color);
+    const badge = k.key==='r'
+      ? `<span class="kpi-badge ${v>=0?'badge-up':'badge-down'}">${v>=0?'▲':'▼'} ${Math.abs(parseFloat(pct('r')))}%</span>` : '';
+    div.innerHTML=`<div class="kpi-label">${met.label}</div><div class="kpi-value" style="color:${k.color}">${fmt(v)}</div><div class="kpi-sub">${k.sub}</div>${badge}`;
     el.appendChild(div);
   });
 }
-
 
 // ─── MAIN CHART ──────────────────────────────────────────────────────────────
 function barColors(data, baseColor) {
@@ -906,52 +759,24 @@ function buildMarginChart(rows) {
 }
 
 // ─── TABLE ───────────────────────────────────────────────────────────────────
-function buildTable(rows){
+function buildTable(rows) {
   const t=document.getElementById('detailTable');
   const am=METRICS.filter(m=>selMetrics.has(m.key));
-  const showPlan=(viewMode==='vsplan'&&selYears.has(2026));
-  const planRows=showPlan?getFiltered2026Plan():[];
-  const planMap={};planRows.forEach(r=>{planMap[r.mo+'_'+r.year]=r;});
-  let h=`<thead><tr><th>Período</th>`;
-  am.forEach(m=>{
-    h+=`<th style="color:${m.color}">${m.label}</th>`;
-    if(showPlan)h+=`<th class="plan-th">Plan ${m.label.split(' ')[0]}</th>`;
-  });
-  if(selMetrics.has('v')&&selMetrics.has('r')){h+=`<th>Margen</th>`;if(showPlan)h+=`<th class="plan-th">Plan Mrg</th>`;}
-  h+=`</tr></thead><tbody>`;
+  let html='<thead><tr><th>Período</th>';
+  am.forEach(m=>html+=`<th style="color:${m.color}">${m.label}</th>`);
+  if(selMetrics.has('v')&&selMetrics.has('r')) html+='<th>Margen</th>';
+  html+='</tr></thead><tbody>';
   rows.forEach(r=>{
-    const plan=planMap[r.mo+'_'+r.year];
-    h+=`<tr><td class="bold">${r.mo} ${r.year}</td>`;
-    am.forEach(m=>{
-      const v=r[m.key];
-      h+=`<td class="${m.key==='r'?(v<0?'neg':'pos'):''}">${fmtFull(v)}</td>`;
-      if(showPlan){
-        if(plan){const pv=plan[m.key],isExp=m.key==='c'||m.key==='g',good=isExp?(v-pv)<=0:(v-pv)>=0;h+=`<td class="plan-cell ${good?'pos':'neg'}">${fmtFull(pv)}</td>`;}
-        else h+=`<td class="plan-cell" style="color:var(--text-light)">—</td>`;
-      }
-    });
-    if(selMetrics.has('v')&&selMetrics.has('r')){
-      const pct=r.v>0?((r.r/r.v)*100).toFixed(1)+'%':'-';
-      h+=`<td class="${parseFloat(pct)<0?'neg':'pos'}">${pct}</td>`;
-      if(showPlan){
-        if(plan){const pp=plan.v>0?((plan.r/plan.v)*100).toFixed(1)+'%':'-';h+=`<td class="plan-cell ${parseFloat(pp)<0?'neg':'pos'}">${pp}</td>`;}
-        else h+=`<td class="plan-cell">—</td>`;
-      }
-    }
-    h+=`</tr>`;
+    html+=`<tr><td class="bold">${r.mo} ${r.year}</td>`;
+    am.forEach(m=>{const v=r[m.key];html+=`<td class="${m.key==='r'?(v<0?' neg':' pos'):''}">${fmtFull(v)}</td>`;});
+    if(selMetrics.has('v')&&selMetrics.has('r')){const pct=r.v>0?(r.r/r.v*100).toFixed(1):'0';html+=`<td class="${parseFloat(pct)<0?' neg':' pos'}">${pct}%</td>`;}
+    html+='</tr>';
   });
-  h+=`<tr style="border-top:2px solid ${P.border}"><td class="bold" style="color:${P.textLight}">TOTAL</td>`;
-  am.forEach(m=>{
-    const total=sum(rows,m.key);
-    h+=`<td class="bold ${m.key==='r'?(total<0?'neg':'pos'):''}" style="color:${m.color}">${fmtFull(total)}</td>`;
-    if(showPlan){const pt=sum(planRows,m.key),isExp=m.key==='c'||m.key==='g',good=isExp?(total-pt)<=0:(total-pt)>=0;h+=`<td class="plan-cell bold ${good?'pos':'neg'}">${fmtFull(pt)}</td>`;}
-  });
-  if(selMetrics.has('v')&&selMetrics.has('r')){
-    const tv=sum(rows,'v'),tr2=sum(rows,'r'),pct=tv>0?((tr2/tv)*100).toFixed(1)+'%':'-';
-    h+=`<td class="bold ${parseFloat(pct)<0?'neg':'pos'}">${pct}</td>`;
-    if(showPlan){const ptv=sum(planRows,'v'),ptr=sum(planRows,'r'),pp=ptv>0?((ptr/ptv)*100).toFixed(1)+'%':'-';h+=`<td class="plan-cell bold ${parseFloat(pp)<0?'neg':'pos'}">${pp}</td>`;}
-  }
-  h+=`</tr></tbody>`;t.innerHTML=h;
+  html+=`<tr style="border-top:2px solid ${P.border}"><td class="bold" style="color:${P.textLight}">TOTAL</td>`;
+  am.forEach(m=>{const total=sum(rows,m.key);html+=`<td class="bold ${m.key==='r'?(total<0?' neg':' pos'):''}" style="color:${m.color}">${fmtFull(total)}</td>`;});
+  if(selMetrics.has('v')&&selMetrics.has('r')){const tv=sum(rows,'v'),tr2=sum(rows,'r');const pct=tv>0?(tr2/tv*100).toFixed(1):0;html+=`<td class="bold ${parseFloat(pct)<0?' neg':' pos'}">${pct}%</td>`;}
+  html+='</tr></tbody>';
+  t.innerHTML=html;
 }
 
 // ─── REFRESH / TOGGLES ───────────────────────────────────────────────────────
